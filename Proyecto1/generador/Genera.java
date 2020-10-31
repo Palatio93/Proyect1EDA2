@@ -8,20 +8,19 @@ import java.io.File;
 
 
 public class Genera {
-  public static void generar() {
-    File file = new File("Archivos");
-    file.mkdir();
+  public void generar(String path, int personas) {
+    // File file = new File("Archivos");
+    // file.mkdir();
 
     Set<Persona> total = new HashSet<Persona>();
     Datos data = new Datos();
+    DataPlus dataFull = new DataPlus();
+    total = dataFull.creador(personas);
 
-    int totalp = 1000;
-
-    total = data.creador(totalp);
 
     try {
 
-      FileWriter datos = new FileWriter("Archivos/F0.txt");
+      FileWriter datos = new FileWriter(path);
 
       for (Persona person : total) {
         // System.out.print(person.imprimePersona2());

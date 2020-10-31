@@ -13,8 +13,8 @@ Ruiz
 Hernandez
 Diaz
 Moreno
-Muñoz
-Álvarez
+Munioz
+Alvarez
 Romero
 Alonso
 Gutierrez
@@ -37,7 +37,7 @@ Ortiz
 Rubio
 Marin
 Sanz
-Nuñez
+Nuniez
 Iglesias
 Medina
 Garrido
@@ -56,7 +56,7 @@ Vidal
 Leon
 Marquez
 Herrera
-Peña
+Penia
 Flores
 Cabrera
 Campos
@@ -74,7 +74,7 @@ Herrero
 Lorenzo
 Montero
 Hidalgo
-Ibañez
+Ibaniez
 Ferrer
 Duran
 Santiago

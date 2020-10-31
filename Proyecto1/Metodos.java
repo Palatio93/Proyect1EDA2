@@ -3,6 +3,8 @@ import java.io.IOException;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileNotFoundException;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.util.Scanner;
 import java.util.List;
 import java.util.LinkedList;
@@ -14,105 +16,101 @@ public class Metodos {
   String F2 = "F2";
   String extension = ".txt";
 
-  public int inicia(String path) throws FileNotFoundException {
+  public int comprueba(String path) throws FileNotFoundException {  // Revisa cuantas lineas tiene el archivo F0
     Scanner sc = new Scanner(new File(path));
 
-    int cuentaLineas = 0;
-    String line = "";
-    while (sc.hasNextLine()) {
-      line += sc.nextLine();
-      cuentaLineas++;
+    int contador = 0;
+
+    try {
+      while (sc.hasNextLine()) {
+        sc.nextLine();
+        contador++;
+      }
+      return contador;
+    } catch(Exception e) {
+      e.printStackTrace();
     }
-    if (cuentaLineas == 1) {
-      return cuentaLineas;
-    } else {
-      return cuentaLineas;
-    }
+    return contador;
   }
 
-  public String[] nombreI1(String path) throws FileNotFoundException {  // De F0 a F1 y F2
-    int llamadas = 0;
-    String pathF1 = dir + F1 + extension;
-    String pathF2 = dir + F2 + extension;
+  public String[] nombreI1(String path){ // De F0 a F1 y F2, ESTE MÉTODO solo se llama 1 vez, al principio
+    String path1 = dir + F1 + extension;
+    String path2 = dir + F2 + extension;
 
     // Instancias
-    Scanner sc = new Scanner(new File(path));
-    List<Persona> personas = new LinkedList<>();
+    // Scanner sc = new Scanner(new File(path));
+    BufferedReader input = null;
+    int alterna = 1;
 
-    int i = 1;
-    llamadas++;
-    while (sc.hasNextLine()) {
-      String line1 = sc.nextLine();
-      Persona per = new Persona();
-      String[] addto = line1.split(",");
-      per.setNombre(addto[0]);
-      per.setApellido(addto[1]);
-      per.setNumCuenta(Long.parseLong(addto[2].trim()));
-      if (personas.isEmpty()) {
-        personas.add(per);
-      } else {
-        if(personas.get(personas.size() - 1).getNombre().compareTo(per.getNombre()) <= 0) { // comparamos el ultimo con el leido, si es menor o del mismo nombre, se debe seguir agregando a personas
+    try {
+      FileReader file0 = new FileReader(path);
+      input = new BufferedReader(file0);
+      String linea;
+      List<Persona> personas = new LinkedList<>();
+      while ((linea = input.readLine()) != null) {
+        Persona per = new Persona();
+        String[] addto = linea.split(",");
+        per.setNombre(addto[0]);
+        per.setApellido(addto[1]);
+        per.setNumCuenta(Long.parseLong(addto[2].trim()));
+        if (personas.isEmpty()) {
           personas.add(per);
-        } else {  // Para imprimir en archivos
-          if (i % 2 != 0) { // Para archivo F1
-            try {
-              FileWriter f1 = new FileWriter(pathF1, true);
-              for (Persona per1 : personas) {
-                f1.write(per1.impArchivoAux());
-              }
-              f1.write("\n");
-              personas.clear();
-              personas.add(per);
-              f1.close();
-              i++;
-            } catch (IOException e) {
-              System.out.println("Intenta de nuevo");
-            }
-          } else {
-            try { // Para archivo F2
-              FileWriter f2 = new FileWriter(pathF2, true);
-              for (Persona per1 : personas) {
-                f2.write(per1.impArchivoAux());
-              }
-              f2.write("\n");
-              personas.clear();
-              personas.add(per);
-              f2.close();
-              i++;
-            } catch (IOException e) {
-              System.out.println("Intenta de nuevo");
-            } // Fin try-catch
-          } // Fin else que imprime en archivo F2
-        } // Fin else donde se imprime en archivos
-      } // Fin primer else
-    } // Fin del while
+        } else if(personas.get(personas.size()-1).getNombre().compareTo(per.getNombre()) < 0) { // comparamos el ultimo con el leido, si es menor o del mismo nombre, se debe seguir agregando a personas
+          personas.add(per);
 
-    System.out.println("Archivo " + path + " leido.");
-    System.out.println("Se han creado: " + pathF1 + " y " + pathF2);
+        } else {
+          personas = escribeArchivoF1F2(personas, per, alterna, path1, path2);
+          alterna++;
+        } // Fin de impresion en archivos
+     // Fin if-else en donde personas no es empty
+    } // Fin while que lee
+    escribeArchivoFinal(personas, alterna, path1, path2);
+    } catch(Exception e) {
+        System.out.println("Algo anda mal");
+    } finally {
+      try {
+        if (input == null) {
+          input.close();
+        }
+      } catch(Exception e) {
+        System.out.println("Algo anda mal");
+      }
+    } // Termina el finally, que termina del try-catch
 
-    String[] auxPaths = {pathF1, pathF2};
+    // System.out.println("Archivo " + path + " leido.");
+    // System.out.println("Se han creado: " + path1 + " y " + path2);
+
+    String[] auxPaths = {path, path1, path2};
     return auxPaths;
   } // Fin metodo // Pasa de F0 a F1 y F2;
 
-  public String[] nombreI2(String path0, String path1, String path2) throws FileNotFoundException { // Pasa de F1 y F2 a F0
+  public String[] nombreI2(String path0, String path1, String path2) { // Pasa de F1 y F2 a F0, ESTE debe llamarse varias
 
-    Scanner sc1 = new Scanner(new File(path1)); // Para leer en archivo
-    Scanner sc2 = new Scanner(new File(path2)); // Para leer en archivo
-
-    System.out.println("imprime paths");
-    System.out.println(path0);
-    System.out.println(path1);
-    System.out.println(path2);
+    BufferedReader inputf1 = null;
+    BufferedReader inputf2 = null;
 
     try {
-      // FileWriter f0 = new FileWriter(path0);  // Para limpiar el archivo F0
-      // f0.close();
+      FileWriter f0 = new FileWriter(path0);  // Para limpiar el archivo F0
+      BufferedWriter escribef0 = new BufferedWriter(f0);
+      escribef0.close();
+      // System.out.println("Se limpio " + path0);
       List<Persona> personas = new LinkedList<>();
-      while (sc1.hasNextLine() || sc2.hasNextLine()) {
+
+      FileReader filef1 = new FileReader(path1);
+      inputf1 = new BufferedReader(filef1);
+      FileReader filef2 = new FileReader(path2);
+      inputf2 = new BufferedReader(filef2);
+
+      String linef1 = null;
+      String linef2 = null;
+      int escrituras = 0;
+
+      while ((linef1 = inputf1.readLine()) != null && (linef2 = inputf2.readLine()) != null) {
         Queue<Persona> personasf1 = new LinkedList<Persona>();
         Queue<Persona> personasf2 = new LinkedList<Persona>();
-        personasf1 = creaCola(sc1.nextLine().split("/"));
-        personasf2 = creaCola(sc2.hasNextLine() ? sc2.nextLine().split("/") : new String[0]);
+
+        personasf1 = creaCola(linef1.split("/"));
+        personasf2 = creaCola(linef2.split("/"));
 
         boolean flag = personasf1.size() <= personasf2.size();
 
@@ -121,75 +119,158 @@ public class Metodos {
         } else {
           personas = procesaColas(personasf2, personasf1);
         }
-        FileWriter f0 = new FileWriter(path0, true);
+
+        f0 = new FileWriter(path0, true);
+        escribef0 = new BufferedWriter(f0);
+
         for (Persona per : personas) {
-          f0.write(per.impArchivoAux());
+          escribef0.write(per.impArchivoAux());
+          escrituras++;
         }
-        f0.write("\n");
+        escribef0.newLine();
+        escribef0.close();
         personas.clear();
-        f0.close();
+
       } // Fin while
 
-      System.out.println("Se ha modificado el archivo: " + path0);
+      if (linef1 != null) {
+        Queue<Persona> personasf1 = new LinkedList<Persona>();
+        Queue<Persona> personasf2 = new LinkedList<Persona>();
+        personasf1 = creaCola(linef1.split("/"));
+        personas = procesaColas(personasf2, personasf1);
+
+        f0 = new FileWriter(path0, true);
+        escribef0 = new BufferedWriter(f0);
+        for (Persona per : personas) {
+          escribef0.write(per.impArchivoAux());
+          escrituras++;
+        }
+        escribef0.newLine();
+        personas.clear();
+        escribef0.close();
+      }
+      // System.out.println("Se escribieron " + escrituras + " veces");
+      // System.out.println("Se ha modificado el archivo: " + path0);
     } catch(Exception e) {
       System.out.println("Algo salio mal");
       e.printStackTrace();
     }
     String[] pathsAux  = {path0, path1, path2};
-    System.out.println("Antes del return");
-    for (String str : pathsAux) {
-      System.out.println(str);
-    }
     return pathsAux;
   } // Fin metodo
 
-  public String[] nombreI3(String path0, String path1, String path2) throws FileNotFoundException {  // Lee de F0 para modificar F1 y F2
-    String path = path0;
-    Scanner sc = new Scanner(new File(path));
-    try { // Para limpiar los archivos F1 y F2
-      FileWriter f1 = new FileWriter(path1);
-      FileWriter f2 = new FileWriter(path2);
-      f1.close();
-      f2.close();
-
-    } catch(Exception e) {
-
-    }
+  public String[] nombreI3(String path0, String path1, String path2) {  // Lee de F0 para modificar F1 y F2, separa por lineas de F0 en bloques
 
     int parametro = 1;
+    BufferedReader inputf0 = null;
 
-    try {
-      String pathF1 = dir + F1 + extension;
-      String pathF2 = dir + F2 + extension;
+    try {   // Se elimina el contenido de F1 y F2, puesto que está dentro de F0 intercalado.
+      FileWriter f1 = new FileWriter(path1);
+      BufferedWriter escribef1 = new BufferedWriter(f1);
+      escribef1.close();
+      // System.out.println("Se elimino " + path1);
+      FileWriter f2 = new FileWriter(path2);
+      BufferedWriter escribef2 = new BufferedWriter(f2);
+      escribef2.close();
+      // System.out.println("Se elimino " + path2);
 
-      while (sc.hasNextLine()) {
+      FileReader filef0 = new FileReader(path0);
+      inputf0 = new BufferedReader(filef0);
+
+      String linef0;
+
+      while ((linef0 = inputf0.readLine()) != null) {
         if (parametro % 2 != 0) {
-          FileWriter f1 = new FileWriter(pathF1, true);
-          f1.write(sc.nextLine());
-          f1.write("\n");
-          f1.close();
+          f1 = new FileWriter(path1, true);
+          escribef1 = new BufferedWriter(f1);
+          escribef1.write(linef0);  // ACA FUE EL CAMBIO
+          escribef1.write("\n");
+          escribef1.close();
           parametro++;
         } else {
-          FileWriter f2 = new FileWriter(pathF2, true);
-          f2.write(sc.nextLine());
-          f2.write("\n");
-          f2.close();
+          f2 = new FileWriter(path2, true);
+          escribef2 = new BufferedWriter(f2);
+          escribef2.write(linef0);  // ACA FUE EL CAMBIO
+          escribef2.write("\n");
+          escribef2.close();
           parametro++;
         } // Fin if-else
       } // Fin del while
-      System.out.println("Se han modificado " + pathF1 + " y " + pathF2);
+      // System.out.println("Se han modificado " + path1 + " y " + path2);
     } catch(Exception e) {
       System.out.println("Algo salio mal");
     } // Fin del try-catch
-    String[] pathsAux = {path, path1, path2};
+
+    String[] pathsAux = {path0, path1, path2};
     return pathsAux;
   } // Fin del metodo
 
+  public void regresaAFormato(String path0) {
+    String pathtmp = dir + "tmp" + extension;
+
+    try {
+      Scanner sc  = new Scanner(new File(path0));
+      while(sc.hasNextLine()) { // Copia la unica linea de F0 a un tmp.txt
+        String linea = sc.nextLine();
+        FileWriter fAux = new FileWriter(pathtmp);
+        fAux.write(linea);
+        fAux.close();
+        }
+      } catch(Exception e) {
+
+    } // Fin del try-catch
+
+    try { // F0 ya fue copiado, se puede sobreescribir
+      Scanner scAux = new Scanner(new File(pathtmp));
+      FileWriter f0 = new FileWriter(path0);  // Se ha limpiado F0
+      f0.close();
+      while (scAux.hasNextLine()) {
+        String[] personas = scAux.nextLine().split("/");
+        for (String persona : personas) {
+          String[] creaAdanEva = persona.split(",");
+            Persona sujetoprueba = new Persona();
+            sujetoprueba.setNombre(creaAdanEva[0]);
+            sujetoprueba.setApellido(creaAdanEva[1]);
+            sujetoprueba.setNumCuenta(Long.parseLong(creaAdanEva[2].trim()));
+            f0 = new FileWriter(path0, true);
+            f0.write(sujetoprueba.toString());
+            f0.close();
+          } // Fin foreach de cada sujeto
+      } // fin while de lectura
+    } catch(Exception e) {
+
+    } // Fin del try-catch
+  } // Fin del metodo
+
+// public void crearTemp(String pathtmp) {
+//
+//   File temporal = new File("Archivos\\Temporal");
+// 	temporal.mkdir();
+// 	temporal.deleteOnExit();
+//
+//   File tmpfile = new File("Archivos\\Temporal\\temp.txt");
+//
+//   try {
+//     tmpfile.createNewFile();
+//   } catch(Exception e) {
+//
+//   }
+//
+//   tmpfile.deleteOnExit();
+// } // Fin del metodo
+
   public List<Persona> procesaColas(Queue<Persona> colaMenor, Queue<Persona> colaMayor) { // Hace el ordenamiento entre colas
     List<Persona> personas = new LinkedList<>();
-    int size = colaMayor.size();
-    for (int i = 0; i < size; i++) {
-      if (i <= colaMenor.size() && !colaMenor.isEmpty()) {
+    int sizeMayor = colaMayor.size();
+    int sizeMenor = colaMenor.size();
+
+    if (colaMenor.isEmpty()) {
+      personas.addAll(colaMayor);
+      return personas;
+    }
+
+    for (int i = 0; i < sizeMayor; i++) {
+      if (i < sizeMenor) {
         personas = agregaPersona(personas, colaMenor.poll());
       } // Fin del if
       personas = agregaPersona(personas, colaMayor.poll());
@@ -232,5 +313,79 @@ public class Metodos {
       return primerP;
     }
   }
+
+  public List<Persona> escribeArchivoF1F2(List<Persona> personas, Persona per,int alterna,String path1,String path2) {
+    if (alterna % 2 != 0) {
+      try { // Para archivo F1
+        FileWriter f1 = new FileWriter(path1, true);
+        BufferedWriter escribe = new BufferedWriter(f1);
+        for (Persona per1 : personas) {
+          escribe.write(per1.impArchivoAux());
+        }
+        escribe.newLine();
+        personas.clear();
+        escribe.flush();
+        escribe.close();
+        f1.close();
+        personas.add(per);
+      } catch (IOException e) {
+        System.out.println("Algo anda mal");
+      }
+      return personas;
+    } else {
+      try { // Para archivo F2
+        FileWriter f2 = new FileWriter(path2, true);
+        BufferedWriter escribe = new BufferedWriter(f2);
+        for (Persona per1 : personas) {
+          escribe.write(per1.impArchivoAux());
+        }
+        escribe.newLine();
+        personas.clear();
+        escribe.flush();
+        escribe.close();
+        f2.close();
+        personas.add(per);
+      } catch (IOException e) {
+        System.out.println("Algo anda mal");
+      } // Fin try-catch
+      return personas;
+    } // Fin else que imprime en archivo f2
+  } // Fin del metodo
+
+  public void escribeArchivoFinal(List<Persona> personas,int alterna,String path1,String path2) {
+    if (alterna % 2 != 0) {
+      try { // Para archivo F1
+        FileWriter f1 = new FileWriter(path1, true);
+        BufferedWriter escribe = new BufferedWriter(f1);
+        for (Persona per1 : personas) {
+          escribe.write(per1.impArchivoAux());
+        }
+        escribe.newLine();
+        personas.clear();
+        escribe.flush();
+        escribe.close();
+        f1.close();
+      } catch (IOException e) {
+        System.out.println("Algo anda mal");
+      }
+    } else {
+      try { // Para archivo F2
+        FileWriter f2 = new FileWriter(path2, true);
+        BufferedWriter escribe = new BufferedWriter(f2);
+        for (Persona per1 : personas) {
+          escribe.write(per1.impArchivoAux());
+        }
+        escribe.newLine();
+        personas.clear();
+        escribe.flush();
+        escribe.close();
+        f2.close();
+      } catch (IOException e) {
+        System.out.println("Algo anda mal");
+      } // Fin try-catch
+    } // Fin else que imprime en archivo f2
+  } // Fin del metodo
+
+
 
 }

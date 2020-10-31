@@ -43,12 +43,12 @@ public class Persona {
   */
 
   public String impArchivoAux() {
-    return this.nombre + "," + apellido + ","  + num_cuenta + "/";
+    return this.nombre + "," + this.apellido + ","  + this.num_cuenta + "/";
   }
 
   @Override
   public String toString() {
-    return this.nombre + "," + apellido + ","  + num_cuenta + "\n";
+    return this.nombre + "," + this.apellido + ","  + this.num_cuenta + "\n";
   }
 
 
